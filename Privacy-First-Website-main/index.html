@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy-First Digital Identity Monitor</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/face-api.js/0.22.2/face-api.min.js"></script>
+</head>
+<body>
+    <!-- Floating particles for visual appeal -->
+    <!-- <div class="floating-particle"></div>
+    <div class="floating-particle"></div>
+    <div class="floating-particle"></div> -->
+    
+    <div class="container">
+        <!-- Authentication Section -->
+        <div id="auth-section" class="section">
+            <div class="auth-container">
+                <h1>Privacy-First Digital Identity Monitor</h1>
+                <div class="auth-tabs">
+                    <button class="tab-btn active" onclick="showTab('login')">Login</button>
+                    <button class="tab-btn" onclick="showTab('register')">Register</button>
+                    <button class="tab-btn" onclick="showTab('webauthn')">Web</button>
+                </div>
+                
+                <!-- Login Form -->
+                <div id="login-form" class="auth-form active">
+                    <input type="email" id="login-email" placeholder="Email" required>
+                    <input type="password" id="login-password" placeholder="Password" required>
+                    <button onclick="login()">Login</button>
+                </div>
+                
+                <!-- Register Form -->
+                <div id="register-form" class="auth-form">
+                    <input type="email" id="register-email" placeholder="Email" required>
+                    <input type="password" id="register-password" placeholder="Password" required>
+                    <input type="password" id="confirm-password" placeholder="Confirm Password" required>
+                    <button onclick="register()">Register</button>
+                </div>
+                
+                <!-- WebAuthn Form -->
+                <div id="webauthn-form" class="auth-form">
+                    <div class="webauthn-buttons">
+                        <button onclick="webauthnLogin()" title="Login with Web Authentication">Login with Web</button><br>
+                        <button onclick="webauthnRegister()" title="Register with Web Authentication">Register with Web</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Application Section -->
+        <div id="app-section" class="section hidden">
+            <header class="app-header">
+                <h1>Digital Identity Monitor</h1>
+                <div class="user-info">
+                    <span id="user-email"></span>
+                    <button onclick="logout()">Logout</button>
+                </div>
+            </header>
+            
+            <!-- Upload Section -->
+            <div class="upload-section">
+                <h2>Upload Face Photo</h2>
+                <div class="upload-area" id="upload-area">
+                    <input type="file" id="file-input" accept="image/*" style="display: none;">
+                    <div class="upload-content">
+                        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7,10 12,15 17,10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <p>Drag and drop your face photo</p>
+                        <p class="upload-hint">Supports JPG, PNG, and other image formats</p>
+                    </div>
+                </div>
+                <div id="upload-preview" class="upload-preview hidden">
+                    <img id="preview-image" alt="Preview">
+                    <div class="preview-actions">
+                        <button onclick="scanImage()">Scan for Matches</button>
+                        <button onclick="clearUpload()">Clear</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dashboard Section -->
+            <div class="dashboard-section">
+                <div class="dashboard-header">
+                    <h2>Scan Results</h2>
+                    <button id="generate-report" onclick="generateReport()" disabled>Generate Report</button>
+                </div>
+                
+                <div id="scan-results" class="scan-results">
+                    <div class="no-results">
+                        <p>No scans performed yet. Upload a photo to get started.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Privacy Controls -->
+            <div class="privacy-section">
+                <h2>Privacy Controls</h2>
+                <div class="privacy-controls">
+                    <button onclick="deleteAllData()" class="danger-btn">Delete All My Data</button>
+                    <button onclick="exportData()">Export My Data</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="auth.js"></script>
+    <script src="face-recognition.js"></script>
+    <script src="privacy.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
+
