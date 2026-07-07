@@ -262,10 +262,11 @@ class PDFReportGenerator {
             this.doc.text('Digital Identity OSINT Report', 15, 25);
             
             // 3. Header Image (if available)
-            if (latestScan.imageData) {
+            const previewImage = document.getElementById('preview-image');
+            if (previewImage && previewImage.src) {
                 try {
-                    // Try to add the image in top right corner (approx 30x30)
-                    this.doc.addImage(latestScan.imageData, 'JPEG', 165, 5, 30, 30);
+                    // Try to add the image element directly to avoid blob/dataURL parsing issues
+                    this.doc.addImage(previewImage, 'JPEG', 165, 5, 30, 30);
                 } catch (e) {
                     console.warn('Could not add image to PDF:', e);
                 }
@@ -285,7 +286,7 @@ class PDFReportGenerator {
             
             // 5. Subject Profile Title
             this.doc.setTextColor(30, 27, 75); // Dark purple
-            this.doc.setFontSize(14);
+            this.doc.setFontSize(16);
             this.doc.setFont('helvetica', 'bold');
             this.doc.text(`Subject Profile: ${match.name}`, 15, 75);
             
@@ -337,12 +338,7 @@ class PDFReportGenerator {
             }
         } catch (error) {
             console.error('PDF generation failed:', error);
-            if (typeof generateSimpleReport === 'function') {
-                console.log('Falling back to simple text report');
-                generateSimpleReport();
-            } else {
-                alert('Failed to generate report. Please try again.');
-            }
+            alert('Failed to generate report: ' + error.message);
         }
     }
 }
