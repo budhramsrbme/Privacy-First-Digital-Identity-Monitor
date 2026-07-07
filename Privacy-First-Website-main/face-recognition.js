@@ -28,25 +28,25 @@ class FaceRecognitionManager {
         // Generate mock face data for demonstration
         const mockFaces = [];
         
-        // Add specific Vijay profile to match the requested UI exactly
+        // Add specific Joseph Vijay profile to match the requested UI exactly
         mockFaces.push({
             id: 'face_vijay_01',
-            name: 'Vijay',
-            location: 'https://www.imdb.com/name/nm0897201/',
+            name: 'Joseph Vijay',
+            location: 'Chennai, India',
             timestamp: new Date().toISOString(),
-            confidence: 0.98,
+            confidence: 0.99,
             descriptor: this.generateMockDescriptor(),
             source: 'public_database',
             metadata: {
-                age: 45,
+                age: 49,
                 gender: 'Male',
-                ethnicity: 'South Asian'
+                ethnicity: 'Indian'
             },
             socials: {
                 instagram: 'https://instagram.com/actorvijay',
                 facebook: 'https://facebook.com/actorvijay',
-                linkedin: 'https://en.wikipedia.org/wiki/Vijay_(actor)',
-                news: 'https://news.google.com/search?q=actor+vijay'
+                news: 'https://news.google.com/search?q=actor+vijay',
+                linkedin: 'https://en.wikipedia.org/wiki/Vijay_(actor)'
             }
         });
 
@@ -155,9 +155,9 @@ class FaceRecognitionManager {
             await new Promise(resolve => setTimeout(resolve, 1500));
             
             // For demonstration purposes to match the requested UI exactly, 
-            // always include Vijay as the top match with 98% confidence
+            // always include Joseph Vijay as the top match with 99% confidence
             const vijayMatch = this.mockDataset.find(m => m.id === 'face_vijay_01');
-            vijayMatch.similarity = 0.98;
+            vijayMatch.similarity = 0.99;
             
             let matches = this.mockDataset.filter(m => m.id !== 'face_vijay_01').map(mockFace => {
                 const similarity = this.calculateSimilarity(uploadedDescriptor, mockFace.descriptor);
@@ -176,8 +176,8 @@ class FaceRecognitionManager {
             
             topMatches.forEach((match, index) => {
                 if (index === 0) {
-                    // Force exact 98% for Vijay
-                    match.confidence = 0.98;
+                    // Force exact 99% for Joseph Vijay
+                    match.confidence = 0.99;
                 } else {
                     // Map the cosine similarity (-1 to 1) to a realistic confidence percentage (60% to 80%)
                     const normalizedConfidence = Math.max(0.6, Math.min(0.80, (match.similarity + 1) / 2 + 0.1));
