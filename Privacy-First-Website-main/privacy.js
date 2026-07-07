@@ -239,195 +239,111 @@ class PDFReportGenerator {
             this.addHeader();
             
             // Add user information
-            this.addUserInfo(currentUser);
-            
-            // Add scan summary
-            this.addScanSummary(currentUser.scans);
-            
-            // Add detailed scan results
-            this.addDetailedResults(currentUser.scans);
-            
-            // Add privacy notice
-            this.addPrivacyNotice();
-            
-            // Generate filename and download
-            const filename = `privacy-monitor-report-${new Date().toISOString().split('T')[0]}.pdf`;
-            this.doc.save(filename);
-            
-            // Reset button
-            reportButton.textContent = originalText;
-            reportButton.disabled = false;
-            
-            // Show success message
-            if (typeof appController !== 'undefined') {
-                appController.showNotification('PDF report generated successfully!', 'success');
-            } else {
-                alert('PDF report generated successfully!');
+            // Get the most recent scan
+            const latestScan = currentUser.scans[currentUser.scans.length - 1];
+            if (!latestScan.matches || latestScan.matches.length === 0) {
+                alert('No matches in the latest scan to generate report');
+                return;
             }
             
+            // Get the top match
+            const match = latestScan.matches[0];
+            
+            this.doc = new window.jspdf.jsPDF();
+            
+            // 1. Header Background
+            this.doc.setFillColor(30, 27, 75); // Dark purple #1E1B4B
+            this.doc.rect(0, 0, 210, 40, 'F');
+            
+            // 2. Header Text
+            this.doc.setTextColor(255, 255, 255);
+            this.doc.setFontSize(22);
+            this.doc.setFont('helvetica', 'normal');
+            this.doc.text('Digital Identity OSINT Report', 15, 25);
+            
+            // 3. Header Image (if available)
+            if (latestScan.imageData) {
+                try {
+                    // Try to add the image in top right corner (approx 30x30)
+                    this.doc.addImage(latestScan.imageData, 'JPEG', 165, 5, 30, 30);
+                } catch (e) {
+                    console.warn('Could not add image to PDF:', e);
+                }
+            }
+            
+            // 4. Metadata
+            this.doc.setTextColor(100, 100, 100);
+            this.doc.setFontSize(10);
+            
+            const generatedDate = new Date().toLocaleString();
+            this.doc.text(`Generated Timestamp: ${generatedDate}`, 15, 50);
+            this.doc.text(`Authorized Operator: ${currentUser.email}`, 15, 56);
+            
+            // Horizontal line
+            this.doc.setDrawColor(220, 220, 220);
+            this.doc.line(15, 62, 195, 62);
+            
+            // 5. Subject Profile Title
+            this.doc.setTextColor(30, 27, 75); // Dark purple
+            this.doc.setFontSize(14);
+            this.doc.setFont('helvetica', 'bold');
+            this.doc.text(`Subject Profile: ${match.name}`, 15, 75);
+            
+            // 6. Data Table
+            const tableData = [
+                ['Match Confidence', `${(match.confidence * 100).toFixed(1)}%`],
+                ['Age Estimate', match.metadata ? match.metadata.age : 'N/A'],
+                ['Gender', match.metadata ? match.metadata.gender : 'N/A'],
+                ['Ethnicity', match.metadata ? match.metadata.ethnicity : 'N/A'],
+                ['Location Found', match.location || 'N/A']
+            ];
+            
+            if (match.socials) {
+                if (match.socials.instagram) tableData.push(['Instagram', match.socials.instagram]);
+                if (match.socials.facebook) tableData.push(['Facebook', match.socials.facebook]);
+                if (match.socials.news) tableData.push(['News', match.socials.news]);
+                if (match.socials.linkedin) tableData.push(['Wikipedia', match.socials.linkedin]);
+            }
+            
+            this.doc.autoTable({
+                startY: 85,
+                head: [['OSINT Data Point', 'Extracted Information']],
+                body: tableData,
+                theme: 'striped',
+                headStyles: {
+                    fillColor: [49, 46, 129], // Dark blue/purple #312E81
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold',
+                    halign: 'left'
+                },
+                bodyStyles: {
+                    textColor: [50, 50, 50],
+                    halign: 'left'
+                },
+                alternateRowStyles: {
+                    fillColor: [248, 249, 250] // Light gray #F8F9FA
+                },
+                columnStyles: {
+                    0: { cellWidth: 60, fontStyle: 'normal' },
+                    1: { cellWidth: 'auto' }
+                },
+                margin: { top: 85, left: 15, right: 15 }
+            });
+            
+            this.doc.save(`osint-report-${match.name.replace(/\s+/g, '-').toLowerCase()}.pdf`);
+            
+            if (typeof appController !== 'undefined') {
+                appController.showNotification('PDF Report generated successfully!', 'success');
+            }
         } catch (error) {
             console.error('PDF generation failed:', error);
-            
-            // Reset button
-            const reportButton = document.getElementById('generate-report');
-            reportButton.textContent = 'Generate Report';
-            reportButton.disabled = false;
-            
-            alert('Failed to generate PDF report. Please try again. Error: ' + error.message);
-        }
-    }
-
-    addHeader() {
-        this.doc.setFontSize(20);
-        this.doc.setFont('helvetica', 'bold');
-        this.doc.text('Privacy-First Digital Identity Monitor', 20, 30);
-        
-        this.doc.setFontSize(12);
-        this.doc.setFont('helvetica', 'normal');
-        this.doc.text('Scan Report', 20, 40);
-        
-        this.doc.setFontSize(10);
-        this.doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 50);
-        
-        // Add line separator
-        this.doc.line(20, 55, 190, 55);
-    }
-
-    addUserInfo(user) {
-        let yPos = 70;
-        
-        this.doc.setFontSize(14);
-        this.doc.setFont('helvetica', 'bold');
-        this.doc.text('User Information', 20, yPos);
-        
-        yPos += 10;
-        this.doc.setFontSize(10);
-        this.doc.setFont('helvetica', 'normal');
-        this.doc.text(`Email: ${user.email}`, 20, yPos);
-        
-        yPos += 8;
-        this.doc.text(`Account Created: ${new Date(user.createdAt).toLocaleString()}`, 20, yPos);
-        
-        yPos += 8;
-        this.doc.text(`Total Scans: ${user.scans ? user.scans.length : 0}`, 20, yPos);
-        
-        yPos += 15;
-        this.doc.line(20, yPos, 190, yPos);
-    }
-
-    addScanSummary(scans) {
-        let yPos = 110;
-        
-        this.doc.setFontSize(14);
-        this.doc.setFont('helvetica', 'bold');
-        this.doc.text('Scan Summary', 20, yPos);
-        
-        yPos += 10;
-        this.doc.setFontSize(10);
-        this.doc.setFont('helvetica', 'normal');
-        
-        const totalScans = scans.length;
-        const totalMatches = scans.reduce((sum, scan) => sum + (scan.matches ? scan.matches.length : 0), 0);
-        const highConfidenceMatches = scans.reduce((sum, scan) => {
-            return sum + (scan.matches ? scan.matches.filter(m => m.confidence >= 0.8).length : 0);
-        }, 0);
-        
-        this.doc.text(`Total Scans Performed: ${totalScans}`, 20, yPos);
-        yPos += 8;
-        this.doc.text(`Total Matches Found: ${totalMatches}`, 20, yPos);
-        yPos += 8;
-        this.doc.text(`High Confidence Matches: ${highConfidenceMatches}`, 20, yPos);
-        
-        yPos += 15;
-        this.doc.line(20, yPos, 190, yPos);
-    }
-
-    addDetailedResults(scans) {
-        let yPos = 150;
-        
-        this.doc.setFontSize(14);
-        this.doc.setFont('helvetica', 'bold');
-        this.doc.text('Detailed Scan Results', 20, yPos);
-        
-        yPos += 15;
-        
-        scans.forEach((scan, index) => {
-            if (yPos > 250) {
-                this.doc.addPage();
-                yPos = 20;
-            }
-            
-            this.doc.setFontSize(12);
-            this.doc.setFont('helvetica', 'bold');
-            this.doc.text(`Scan ${index + 1} - ${new Date(scan.timestamp).toLocaleString()}`, 20, yPos);
-            
-            yPos += 8;
-            this.doc.setFontSize(10);
-            this.doc.setFont('helvetica', 'normal');
-            
-            if (scan.matches && scan.matches.length > 0) {
-                this.doc.text(`Matches Found: ${scan.matches.length}`, 20, yPos);
-                yPos += 6;
-                
-                scan.matches.forEach((match, matchIndex) => {
-                    if (yPos > 270) {
-                        this.doc.addPage();
-                        yPos = 20;
-                    }
-                    
-                    this.doc.text(`${matchIndex + 1}. ${match.name} (${Math.round(match.confidence * 100)}% confidence)`, 30, yPos);
-                    yPos += 5;
-                    this.doc.text(`   Location: ${match.location}`, 30, yPos);
-                    yPos += 5;
-                    this.doc.text(`   Last Seen: ${new Date(match.timestamp).toLocaleString()}`, 30, yPos);
-                    yPos += 5;
-                });
+            if (typeof generateSimpleReport === 'function') {
+                console.log('Falling back to simple text report');
+                generateSimpleReport();
             } else {
-                this.doc.text('No matches found', 20, yPos);
+                alert('Failed to generate report. Please try again.');
             }
-            
-            yPos += 15;
-        });
-    }
-
-    addPrivacyNotice() {
-        const currentPage = this.doc.internal.getCurrentPageInfo().pageNumber;
-        const totalPages = this.doc.internal.getNumberOfPages();
-        
-        if (currentPage < totalPages) {
-            this.doc.addPage();
         }
-        
-        let yPos = 20;
-        
-        this.doc.setFontSize(14);
-        this.doc.setFont('helvetica', 'bold');
-        this.doc.text('Privacy Notice', 20, yPos);
-        
-        yPos += 15;
-        this.doc.setFontSize(10);
-        this.doc.setFont('helvetica', 'normal');
-        
-        const privacyText = [
-            'This report contains sensitive information about your digital identity scans.',
-            'Please keep this document secure and do not share it with unauthorized parties.',
-            '',
-            'Data Protection:',
-            '• All uploaded images are encrypted and stored securely',
-            '• Scan results are processed locally when possible',
-            '• You can delete all your data at any time through the privacy controls',
-            '• No data is shared with third parties without your explicit consent',
-            '',
-            'For questions about your privacy rights, please contact the application administrator.',
-            '',
-            'Report generated by Privacy-First Digital Identity Monitor',
-            `Generated on: ${new Date().toLocaleString()}`
-        ];
-        
-        privacyText.forEach(line => {
-            this.doc.text(line, 20, yPos);
-            yPos += 6;
-        });
     }
 }
 
