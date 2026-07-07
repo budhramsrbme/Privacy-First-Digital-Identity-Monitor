@@ -4,13 +4,8 @@ class FaceRecognitionManager {
         this.mockDataset = this.generateMockDataset();
         this.isModelLoaded = false;
         
-        // Load API key from localStorage or prompt if missing to avoid GitHub Secret Scanning
-        let key = localStorage.getItem('hfApiKey');
-        if (!key) {
-            key = prompt("Please enter your Hugging Face API Key for Smart Recognition:");
-            if (key) localStorage.setItem('hfApiKey', key);
-        }
-        this.hfApiKey = key || ''; 
+        // API key hardcoded as requested by user
+        this.hfApiKey = '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';
         
         this.initFaceAPI();
     }
@@ -171,10 +166,13 @@ class FaceRecognitionManager {
         if (!personName) return null;
         
         try {
-            console.log('Fetching AI profile for:', personName);
-            const prompt = `[INST] You are an OSINT profile generator. Create a JSON profile for the famous person named "${personName}". Return ONLY a single valid JSON object with no markdown formatting, no code blocks, and no extra text. 
+            const prompt = `[INST] You are an OSINT profile generator. Create an accurate JSON profile for the famous person named "${personName}". You MUST provide their real, official social media URLs if they exist. Return ONLY a single valid JSON object with no markdown formatting. 
 Required JSON keys:
-"name" (string), "age" (number), "gender" (string), "ethnicity" (string), "location" (string), "instagram" (url), "facebook" (url), "wikipedia" (url), "news" (url). If you are unsure, make a realistic guess. [/INST]`;
+"name" (string), "age" (number), "gender" (string), "ethnicity" (string), "location" (string), 
+"instagram" (their official instagram URL, e.g., https://instagram.com/username), 
+"facebook" (their official facebook URL), 
+"wikipedia" (their real wikipedia URL), 
+"news" (a google news search URL for them). [/INST]`;
 
             const response = await fetch('https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2', {
                 method: 'POST',
@@ -193,17 +191,38 @@ Required JSON keys:
             });
 
             if (!response.ok) {
-                console.error('HF API Error:', response.status);
-                return null;
+                let errorMsg = `API Error: ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    if (errorData.error) {
+                        errorMsg = errorData.error;
+                        if (errorData.estimated_time) {
+                            errorMsg += ` (Estimated wait: ${Math.round(errorData.estimated_time)}s)`;
+                        }
+                    }
+                } catch (e) {}
+                console.error('HF API Error:', errorMsg);
+                throw new Error(errorMsg);
             }
 
             const result = await response.json();
             let text = result[0].generated_text.trim();
             
-            // Clean up potentially malformed JSON output
-            text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            // Robust JSON extraction
+            const jsonMatch = text.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+                text = jsonMatch[0];
+            } else {
+                text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            }
             
-            const profile = JSON.parse(text);
+            let profile;
+            try {
+                profile = JSON.parse(text);
+            } catch (e) {
+                console.error('Failed to parse AI JSON:', text);
+                throw new Error('AI returned invalid profile data');
+            }
             
             return {
                 id: this.generateScanId(),
@@ -241,11 +260,23 @@ Required JSON keys:
             const extractedName = this.extractNameFromFilename(fileName);
             let aiMatch = null;
             
-            if (extractedName && extractedName.length > 2 && extractedName.toLowerCase() !== 'image' && extractedName.toLowerCase() !== 'photo') {
+            // Ignore generic filenames
+            const isGenericName = extractedName.toLowerCase().includes('image') || 
+                                  extractedName.toLowerCase().includes('photo') || 
+                                  extractedName.toLowerCase().includes('img') || 
+                                  extractedName.toLowerCase().includes('whatsapp') ||
+                                  extractedName.toLowerCase() === 'download';
+            
+            if (extractedName && extractedName.length > 2 && !isGenericName) {
                 if (typeof appController !== 'undefined') {
-                    appController.showNotification('Using Smart Recognition to analyze...', 'info');
+                    appController.showNotification(`Using AI to analyze profile for: ${extractedName}...`, 'info');
                 }
-                aiMatch = await this.fetchAIProfile(extractedName);
+                
+                try {
+                    aiMatch = await this.fetchAIProfile(extractedName);
+                } catch (err) {
+                    throw new Error(`AI Profile generation failed: ${err.message}. Please try scanning again.`);
+                }
             }
             
             if (aiMatch) {
