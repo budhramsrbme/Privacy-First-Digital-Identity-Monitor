@@ -119,34 +119,31 @@ class FaceRecognitionManager {
 
     async scanForMatches(imageElement) {
         try {
-            const uploadedDescriptor = await this.extractFaceDescriptor(imageElement);
+            // Simulate processing time
+            await new Promise(resolve => setTimeout(resolve, 2000));
             
-            // Check if descriptor generation failed and returned a mock
-            if (!uploadedDescriptor) {
-                 throw new Error('Could not generate face descriptor.');
-            }
-
+            // Randomly select 1 to 3 matches from the mock dataset
+            const numMatches = Math.floor(Math.random() * 3) + 1;
             const matches = [];
-
-            // Compare with mock dataset
-            for (const face of this.mockDataset) {
-                const similarity = this.calculateSimilarity(uploadedDescriptor, face.descriptor);
+            const datasetCopy = [...this.mockDataset];
+            
+            for (let i = 0; i < numMatches; i++) {
+                if (datasetCopy.length === 0) break;
+                const randomIndex = Math.floor(Math.random() * datasetCopy.length);
+                const match = datasetCopy.splice(randomIndex, 1)[0];
                 
-                if (similarity > 0.6) { // Threshold for potential matches
-                    matches.push({
-                        ...face,
-                        similarity: similarity,
-                        confidence: Math.min(similarity * 1.2, 1.0) // Boost confidence slightly
-                    });
-                }
+                // Add required frontend UI properties
+                match.confidence = Math.random() * 0.4 + 0.6; // 0.6 to 1.0
+                match.timestamp = Date.now();
+                if(!match.id) match.id = this.generateScanId();
+                
+                matches.push(match);
             }
-
-            // Sort by confidence (highest first)
-            matches.sort((a, b) => b.confidence - a.confidence);
 
             return matches;
         } catch (error) {
             console.error('Scan failed:', error);
+            alert('Scan failed: ' + error.message);
             throw new Error('Failed to scan image for matches');
         }
     }
