@@ -3,7 +3,15 @@ class FaceRecognitionManager {
     constructor() {
         this.mockDataset = this.generateMockDataset();
         this.isModelLoaded = false;
-        this.hfApiKey = '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';
+        
+        // Load API key from localStorage or prompt if missing to avoid GitHub Secret Scanning
+        let key = localStorage.getItem('hfApiKey');
+        if (!key) {
+            key = prompt("Please enter your Hugging Face API Key for Smart Recognition:");
+            if (key) localStorage.setItem('hfApiKey', key);
+        }
+        this.hfApiKey = key || ''; 
+        
         this.initFaceAPI();
     }
 
