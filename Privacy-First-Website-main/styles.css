@@ -830,6 +830,10 @@ body {
     font-size: 13px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    position: relative;
+    z-index: 100;
+    pointer-events: auto;
+    cursor: pointer;
 }
 
 .social-btn i {
