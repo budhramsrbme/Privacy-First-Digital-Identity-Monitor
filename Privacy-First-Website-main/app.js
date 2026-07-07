@@ -81,7 +81,6 @@ class AppController {
             // Show the most recent scan results
             const latestScan = currentUser.scans[currentUser.scans.length - 1];
             displayScanResults(latestScan);
-            
             // Enable report generation if there are scans
             document.getElementById('generate-report').disabled = false;
         }
@@ -247,9 +246,13 @@ function showTab(tabName) {
     document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
     
     // Add active class to selected tab and form
-    event.target.classList.add('active');
+    if (window.event && window.event.target) {
+        window.event.target.classList.add('active');
+    }
     document.getElementById(tabName + '-form').classList.add('active');
 }
+
+// User Auth Handlers
 
 function register() {
     authManager.register();
@@ -373,6 +376,17 @@ function displayScanResults(scanResult) {
                     <p><strong>Gender:</strong> ${match.metadata.gender}</p>
                     <p><strong>Ethnicity:</strong> ${match.metadata.ethnicity}</p>
                 </div>
+                <div class="match-socials">
+                    <h4>Identified Profiles:</h4>
+                    <div class="social-links">
+                        ${match.socials ? `
+                            <a href="${match.socials.instagram}" target="_blank" class="social-btn instagram"><i class="fa-brands fa-instagram"></i> Instagram</a>
+                            <a href="${match.socials.facebook}" target="_blank" class="social-btn facebook"><i class="fa-brands fa-facebook"></i> Facebook</a>
+                            <a href="${match.socials.linkedin}" target="_blank" class="social-btn linkedin"><i class="fa-brands fa-linkedin"></i> LinkedIn</a>
+                            <a href="${match.socials.news}" target="_blank" class="social-btn news"><i class="fa-solid fa-newspaper"></i> News</a>
+                        ` : '<p>No social profiles identified.</p>'}
+                    </div>
+                </div>
             </div>
         `;
     });
@@ -381,7 +395,13 @@ function displayScanResults(scanResult) {
 }
 
 function generateReport() {
-    pdfGenerator.generateReport();
+    if (typeof pdfGenerator !== 'undefined' && typeof window.jspdf !== 'undefined') {
+        pdfGenerator.generateReport();
+    } else if (typeof generateSimpleReport === 'function') {
+        generateSimpleReport();
+    } else {
+        alert('Report generation is currently unavailable.');
+    }
 }
 
 function deleteAllData() {
