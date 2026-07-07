@@ -84,15 +84,6 @@ class AppController {
             // Enable report generation if there are scans
             document.getElementById('generate-report').disabled = false;
         }
-        
-        // Load API key if it exists
-        const apiKey = localStorage.getItem('openaiApiKey');
-        if (apiKey) {
-            const keyInput = document.getElementById('openai-api-key');
-            if (keyInput) {
-                keyInput.placeholder = 'API Key loaded (Saved)';
-            }
-        }
     }
 
     setupFileUpload() {
@@ -193,28 +184,65 @@ class AppController {
         if (!container) return;
 
         const notification = document.createElement('div');
+        
+        let icon = '';
+        let title = '';
+        let borderColor = '';
+        
+        if (type === 'success') {
+            icon = '<i class="fa-solid fa-circle-check" style="color: #28a745; font-size: 20px;"></i>';
+            title = 'Face scan completed!';
+            borderColor = '#28a745';
+        } else if (type === 'error') {
+            icon = '<i class="fa-solid fa-circle-xmark" style="color: #dc3545; font-size: 20px;"></i>';
+            title = 'Error';
+            borderColor = '#dc3545';
+        } else {
+            icon = '<i class="fa-solid fa-circle-info" style="color: #007bff; font-size: 20px;"></i>';
+            title = 'Information';
+            borderColor = '#007bff';
+        }
+
         notification.style.cssText = `
-            background: ${type === 'error' ? '#dc3545' : type === 'success' ? '#28a745' : '#007bff'};
-            color: white;
-            padding: 12px 16px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            animation: slideIn 0.3s ease-out;
+            background: #ffffff;
+            color: #333333;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            border-left: 5px solid ${borderColor};
+            animation: slideIn 0.4s ease-out;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            position: relative;
+            min-width: 300px;
         `;
-        notification.textContent = message;
+        
+        notification.innerHTML = `
+            <div style="flex-shrink: 0; margin-top: 2px;">
+                ${icon}
+            </div>
+            <div style="flex-grow: 1; margin-right: 20px;">
+                <h4 style="margin: 0 0 5px 0; font-size: 16px; color: #212529;">${title}</h4>
+                <p style="margin: 0; font-size: 14px; color: #495057;">${message}</p>
+            </div>
+            <button style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 16px; color: #adb5bd; cursor: pointer; padding: 0;" onclick="this.parentElement.remove()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        `;
 
         container.appendChild(notification);
 
         // Auto remove after 5 seconds
         setTimeout(() => {
             if (notification.parentNode) {
-                notification.style.animation = 'slideOut 0.3s ease-in';
+                notification.style.animation = 'slideOut 0.4s ease-in forwards';
                 setTimeout(() => {
                     if (notification.parentNode) {
                         notification.parentNode.removeChild(notification);
                     }
-                }, 300);
+                }, 400);
             }
         }, 5000);
     }
@@ -329,7 +357,7 @@ async function scanImage() {
         // Enable report generation
         document.getElementById('generate-report').disabled = false;
 
-        appController.showNotification(`Scan completed. Found ${matches.length} potential matches.`, 'success');
+        appController.showNotification(`Found ${matches.length} potential match(es).`, 'success');
 
     } catch (error) {
         console.error('Scan error:', error);
@@ -355,13 +383,7 @@ function displayScanResults(scanResult) {
         return;
     }
 
-    let html = `
-        <div class="scan-summary">
-            <h3>Scan Results</h3>
-            <p>Found ${scanResult.matches.length} potential match(es)</p>
-            <p>Scan completed at: ${faceRecognitionManager.formatTimestamp(scanResult.timestamp)}</p>
-        </div>
-    `;
+    let html = ``;
 
     scanResult.matches.forEach(match => {
         const confidenceLevel = faceRecognitionManager.getConfidenceLevel(match.confidence);
@@ -372,27 +394,25 @@ function displayScanResults(scanResult) {
                 <div class="match-header">
                     <span class="match-id">${match.name}</span>
                     <span class="confidence-score ${confidenceLevel}">
-                        ${Math.round(match.confidence * 100)}% confidence
+                        ${(match.confidence * 100).toFixed(1)}% Match
                     </span>
                 </div>
-                <div class="match-timestamp">
-                    Last seen: ${faceRecognitionManager.formatTimestamp(match.timestamp)}
-                </div>
+                
                 <div class="match-details">
-                    <p><strong>Location:</strong> ${match.location}</p>
-                    <p><strong>Source:</strong> ${match.source}</p>
-                    <p><strong>Age:</strong> ${match.metadata.age} years old</p>
+                    <p><strong>Age:</strong> ${match.metadata.age}</p>
                     <p><strong>Gender:</strong> ${match.metadata.gender}</p>
                     <p><strong>Ethnicity:</strong> ${match.metadata.ethnicity}</p>
+                    <p><strong>Found At:</strong> <span style="color: #20c997;">${match.location}</span></p>
                 </div>
+                
                 <div class="match-socials">
                     <h4>Identified Profiles:</h4>
                     <div class="social-links">
                         ${match.socials ? `
                             <a href="${match.socials.instagram}" target="_blank" class="social-btn instagram"><i class="fa-brands fa-instagram"></i> Instagram</a>
                             <a href="${match.socials.facebook}" target="_blank" class="social-btn facebook"><i class="fa-brands fa-facebook"></i> Facebook</a>
-                            <a href="${match.socials.linkedin}" target="_blank" class="social-btn linkedin"><i class="fa-brands fa-linkedin"></i> LinkedIn</a>
                             <a href="${match.socials.news}" target="_blank" class="social-btn news"><i class="fa-solid fa-newspaper"></i> News</a>
+                            <a href="${match.socials.linkedin}" target="_blank" class="social-btn wikipedia"><i class="fa-brands fa-wikipedia-w"></i> Wikipedia</a>
                         ` : '<p>No social profiles identified.</p>'}
                     </div>
                 </div>
@@ -404,9 +424,7 @@ function displayScanResults(scanResult) {
 }
 
 function generateReport() {
-    if (typeof pdfGenerator !== 'undefined' && typeof window.jspdf !== 'undefined') {
-        pdfGenerator.generateReport();
-    } else if (typeof generateSimpleReport === 'function') {
+    if (typeof generateSimpleReport === 'function') {
         generateSimpleReport();
     } else {
         alert('Report generation is currently unavailable.');
@@ -421,20 +439,6 @@ function exportData() {
     privacyManager.exportUserData();
 }
 
-function saveApiKey() {
-    const keyInput = document.getElementById('openai-api-key');
-    if (keyInput && keyInput.value) {
-        localStorage.setItem('openaiApiKey', keyInput.value);
-        if (typeof appController !== 'undefined') {
-            appController.showNotification('API Key saved securely to your browser', 'success');
-        } else {
-            alert('API Key saved securely to your browser');
-        }
-        keyInput.placeholder = 'API Key loaded (Saved)';
-        keyInput.value = '';
-    }
-}
-
 // Initialize the application
 const appController = new AppController();
 
@@ -447,7 +451,7 @@ const notificationStyles = `
     
     @keyframes slideOut {
         from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(120%); opacity: 0; }
     }
 `;
 
