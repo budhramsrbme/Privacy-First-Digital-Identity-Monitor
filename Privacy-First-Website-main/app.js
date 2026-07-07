@@ -84,6 +84,15 @@ class AppController {
             // Enable report generation if there are scans
             document.getElementById('generate-report').disabled = false;
         }
+        
+        // Load API key if it exists
+        const apiKey = localStorage.getItem('openaiApiKey');
+        if (apiKey) {
+            const keyInput = document.getElementById('openai-api-key');
+            if (keyInput) {
+                keyInput.placeholder = 'API Key loaded (Saved)';
+            }
+        }
     }
 
     setupFileUpload() {
@@ -410,6 +419,20 @@ function deleteAllData() {
 
 function exportData() {
     privacyManager.exportUserData();
+}
+
+function saveApiKey() {
+    const keyInput = document.getElementById('openai-api-key');
+    if (keyInput && keyInput.value) {
+        localStorage.setItem('openaiApiKey', keyInput.value);
+        if (typeof appController !== 'undefined') {
+            appController.showNotification('API Key saved securely to your browser', 'success');
+        } else {
+            alert('API Key saved securely to your browser');
+        }
+        keyInput.placeholder = 'API Key loaded (Saved)';
+        keyInput.value = '';
+    }
 }
 
 // Initialize the application
