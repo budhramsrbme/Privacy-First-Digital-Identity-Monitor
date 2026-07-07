@@ -593,17 +593,17 @@ body {
 }
 
 .match-item {
-    background: rgba(30, 41, 59, 0.5);
+    background: rgba(26, 32, 53, 0.9);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border-radius: 15px;
-    padding: 25px;
+    border-radius: 12px;
+    padding: 30px;
     margin-bottom: 20px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-    border-left: 5px solid #667eea;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    border-right: 1px solid rgba(255, 255, 255, 0.05);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-left: 4px solid #667eea;
+    border-top: 1px solid rgba(255, 255, 255, 0.03);
+    border-right: 1px solid rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
@@ -659,12 +659,12 @@ body {
 }
 
 .confidence-score {
-    padding: 6px 15px;
-    border-radius: 25px;
-    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
     font-weight: 700;
     color: white;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .confidence-score.high {
@@ -687,20 +687,24 @@ body {
 }
 
 .match-details {
-    margin-top: 15px;
-    color: #cbd5e1;
+    margin-top: 20px;
+    margin-bottom: 30px;
+    color: #e2e8f0;
     font-size: 14px;
-    line-height: 1.6;
+    line-height: 1.8;
 }
 
 .match-details p {
-    margin-bottom: 8px;
-    font-weight: 400;
+    margin-bottom: 6px;
+    font-weight: 500;
 }
 
 .match-details strong {
-    color: #e2e8f0;
-    font-weight: 600;
+    color: #f8fafc;
+    font-weight: 700;
+    margin-right: 5px;
+    display: inline-block;
+    width: 80px;
 }
 
 /* Privacy Section */
@@ -845,14 +849,14 @@ body {
     background: linear-gradient(135deg, #1877F2, #0C5ECA);
 }
 
-.social-btn.linkedin {
-    background: linear-gradient(135deg, #0A66C2, #004182);
+.social-btn.news {
+    background: #334155;
+    color: #e2e8f0;
 }
 
-.social-btn.news {
-    background: linear-gradient(135deg, #4285F4, #34A853, #FBBC05, #EA4335);
-    background-size: 200% auto;
-    animation: gradientShift 5s ease infinite;
+.social-btn.wikipedia {
+    background: #94a3b8;
+    color: white;
 }
 
 /* Responsive Design */
