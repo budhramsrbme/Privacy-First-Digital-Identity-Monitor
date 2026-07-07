@@ -424,7 +424,9 @@ function displayScanResults(scanResult) {
 }
 
 function generateReport() {
-    if (typeof generateSimpleReport === 'function') {
+    if (typeof pdfGenerator !== 'undefined' && typeof window.jspdf !== 'undefined') {
+        pdfGenerator.generateReport();
+    } else if (typeof generateSimpleReport === 'function') {
         generateSimpleReport();
     } else {
         alert('Report generation is currently unavailable.');
