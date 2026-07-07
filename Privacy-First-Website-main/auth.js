@@ -255,34 +255,4 @@ class AuthManager {
 // Initialize auth manager
 const authManager = new AuthManager();
 
-// Tab switching
-function showTab(tabName) {
-    // Remove active class from all tabs and forms
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
-    
-    // Add active class to selected tab and form
-    event.target.classList.add('active');
-    document.getElementById(tabName + '-form').classList.add('active');
-}
-
-// Auth functions
-function register() {
-    authManager.register();
-}
-
-function login() {
-    authManager.login();
-}
-
-function webauthnRegister() {
-    authManager.webauthnRegister();
-}
-
-function webauthnLogin() {
-    authManager.webauthnLogin();
-}
-
-function logout() {
-    authManager.logout();
-}
+// Global HTML event handlers are defined in app.js
