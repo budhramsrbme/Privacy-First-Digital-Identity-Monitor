@@ -332,7 +332,10 @@ async function scanImage() {
     scanButton.disabled = true;
 
     try {
-        const matches = await faceRecognitionManager.scanForMatches(previewImage);
+        const fileInput = document.getElementById('file-input');
+        const fileName = fileInput && fileInput.files.length > 0 ? fileInput.files[0].name : '';
+        
+        const matches = await faceRecognitionManager.scanForMatches(previewImage, fileName);
         
         // Store scan results
         const scanResult = {
