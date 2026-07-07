@@ -8,13 +8,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/face-api.js/0.22.2/face-api.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1/dist/face-api.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <!-- Floating particles for visual appeal -->
-    <!-- <div class="floating-particle"></div>
     <div class="floating-particle"></div>
-    <div class="floating-particle"></div> -->
+    <div class="floating-particle"></div>
+    <div class="floating-particle"></div>
     
     <div class="container">
         <!-- Authentication Section -->
@@ -27,9 +31,8 @@
                     <button class="tab-btn" onclick="showTab('webauthn')">Web</button>
                 </div>
                 
-                <!-- Login Form -->
                 <div id="login-form" class="auth-form active">
-                    <input type="email" id="login-email" placeholder="Email" required>
+                    <input type="email" id="login-email" placeholder="Email address" required>
                     <input type="password" id="login-password" placeholder="Password" required>
                     <button onclick="login()">Login</button>
                 </div>
@@ -73,15 +76,15 @@
                             <polyline points="7,10 12,15 17,10"></polyline>
                             <line x1="12" y1="15" x2="12" y2="3"></line>
                         </svg>
-                        <p>Drag and drop your face photo</p>
+                        <p>Click to upload your face photo</p>
                         <p class="upload-hint">Supports JPG, PNG, and other image formats</p>
                     </div>
                 </div>
                 <div id="upload-preview" class="upload-preview hidden">
                     <img id="preview-image" alt="Preview">
                     <div class="preview-actions">
-                        <button onclick="scanImage()">Scan for Matches</button>
-                        <button onclick="clearUpload()">Clear</button>
+                        <button onclick="scanImage()">Start Scan</button>
+                        <button onclick="clearUpload()">Cancel</button>
                     </div>
                 </div>
             </div>
@@ -95,7 +98,7 @@
                 
                 <div id="scan-results" class="scan-results">
                     <div class="no-results">
-                        <p>No scans performed yet. Upload a photo to get started.</p>
+                        <p>Upload a photo and click scan to see potential matches across the web.</p>
                     </div>
                 </div>
             </div>
@@ -104,8 +107,8 @@
             <div class="privacy-section">
                 <h2>Privacy Controls</h2>
                 <div class="privacy-controls">
-                    <button onclick="deleteAllData()" class="danger-btn">Delete All My Data</button>
-                    <button onclick="exportData()">Export My Data</button>
+                    <button onclick="deleteAllData()" class="danger-btn">Delete Data</button>
+                    <button onclick="exportData()">Opt-out Search</button>
                 </div>
             </div>
         </div>
