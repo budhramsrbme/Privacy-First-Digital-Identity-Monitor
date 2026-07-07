@@ -495,12 +495,24 @@ function generateSimpleReport() {
 
         // Create a simple text report
         let reportContent = 'PRIVACY-FIRST DIGITAL IDENTITY MONITOR\n';
-        reportContent += 'Scan Report\n';
-        reportContent += `Generated: ${new Date().toLocaleString()}\n\n`;
+        reportContent += 'SCAN REPORT\n';
+        
+        // format date as YYYY-MM-DD HH:MM:SS
+        const formatDateTime = (dateString) => {
+            const d = new Date(dateString);
+            return d.getFullYear() + '-' + 
+                String(d.getMonth() + 1).padStart(2, '0') + '-' + 
+                String(d.getDate()).padStart(2, '0') + ' ' + 
+                String(d.getHours()).padStart(2, '0') + ':' + 
+                String(d.getMinutes()).padStart(2, '0') + ':' + 
+                String(d.getSeconds()).padStart(2, '0');
+        };
+        
+        reportContent += `Generated: ${formatDateTime(new Date().toISOString())}\n\n`;
         
         reportContent += 'USER INFORMATION\n';
         reportContent += `Email: ${currentUser.email}\n`;
-        reportContent += `Account Created: ${new Date(currentUser.createdAt).toLocaleString()}\n`;
+        reportContent += `Account Created: ${formatDateTime(currentUser.createdAt)}\n`;
         reportContent += `Total Scans: ${currentUser.scans ? currentUser.scans.length : 0}\n\n`;
         
         reportContent += 'SCAN SUMMARY\n';
@@ -516,15 +528,19 @@ function generateSimpleReport() {
         
         reportContent += 'DETAILED SCAN RESULTS\n';
         currentUser.scans.forEach((scan, index) => {
-            reportContent += `\nScan ${index + 1} - ${new Date(scan.timestamp).toLocaleString()}\n`;
+            reportContent += `\nScan ${index + 1} - ${formatDateTime(scan.timestamp)}\n`;
             
             if (scan.matches && scan.matches.length > 0) {
                 reportContent += `Matches Found: ${scan.matches.length}\n`;
                 
                 scan.matches.forEach((match, matchIndex) => {
-                    reportContent += `${matchIndex + 1}. ${match.name} (${Math.round(match.confidence * 100)}% confidence)\n`;
-                    reportContent += `   Location: ${match.location}\n`;
-                    reportContent += `   Last Seen: ${new Date(match.timestamp).toLocaleString()}\n`;
+                    reportContent += `${matchIndex + 1}. ${match.name} (${Math.round(match.confidence * 100)}% Match)\n`;
+                    if (match.metadata) {
+                        reportContent += `   Age: ${match.metadata.age}\n`;
+                        reportContent += `   Gender: ${match.metadata.gender}\n`;
+                        reportContent += `   Ethnicity: ${match.metadata.ethnicity}\n`;
+                    }
+                    reportContent += `   Found At: ${match.location}\n`;
                 });
             } else {
                 reportContent += 'No matches found\n';
@@ -545,7 +561,11 @@ function generateSimpleReport() {
         link.click();
         URL.revokeObjectURL(url);
         
-        alert('Text report generated successfully!');
+        if (typeof appController !== 'undefined') {
+            appController.showNotification('Report generated successfully!', 'success');
+        } else {
+            alert('Text report generated successfully!');
+        }
         
     } catch (error) {
         console.error('Simple report generation failed:', error);
