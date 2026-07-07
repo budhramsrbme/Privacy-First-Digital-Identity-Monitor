@@ -242,6 +242,49 @@ class FaceRecognitionManager {
         }
     }
     
+    // Call SerpApi Google Lens to scan a public image URL
+    async fetchGoogleLensOSINT(publicUrl) {
+        try {
+            console.log('Sending public URL to Google Lens via SerpApi:', publicUrl);
+            const targetUrl = `https://serpapi.com/search.json?engine=google_lens&url=${encodeURIComponent(publicUrl)}&api_key=${this.serpApiKey}`;
+            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+            
+            const response = await fetch(proxyUrl);
+            const proxyData = await response.json();
+            
+            if (!proxyData.contents) {
+                throw new Error('CORS Proxy failed to fetch Google Lens');
+            }
+            
+            const result = JSON.parse(proxyData.contents);
+            if (result.error) throw new Error(result.error);
+            
+            // Try to extract the identity from knowledge_graph or visual_matches
+            let identity = null;
+            if (result.knowledge_graph && result.knowledge_graph.length > 0) {
+                identity = result.knowledge_graph[0].title;
+            } else if (result.visual_matches && result.visual_matches.length > 0) {
+                // Find a match that looks like a person's name
+                const match = result.visual_matches.find(m => m.title && m.title.split(' ').length <= 4);
+                if (match) identity = match.title;
+            }
+            
+            if (identity) {
+                console.log('Google Lens identified person as:', identity);
+                if (typeof appController !== 'undefined') {
+                    appController.showNotification(`Google Lens found: ${identity}. Compiling OSINT profile...`, 'success');
+                }
+                // Now pass it to our standard OSINT builder to get socials/metadata
+                return this.fetchOSINTProfile(identity);
+            }
+            
+            throw new Error('Google Lens could not confidently identify the face.');
+        } catch (error) {
+            console.error('Google Lens scanning failed:', error);
+            throw new Error(`Google Lens failed: ${error.message}`);
+        }
+    }
+    
     // Call Hugging Face API to generate profile as fallback
     async fetchAIProfile(personName) {
         if (!personName) return null;
@@ -330,34 +373,45 @@ Required JSON keys:
         }
     }
 
-    async scanForMatches(imageElement, fileName = '') {
+    async scanForMatches(imageElement, fileName = '', publicUrl = '') {
         try {
             // Extract the face descriptor using Face-API.js
             const uploadedDescriptor = await this.extractFaceDescriptor(imageElement);
             
             let topMatches = [];
-            
-            // Try to extract a name and fetch AI profile
-            const extractedName = this.extractNameFromFilename(fileName);
             let aiMatch = null;
             
-            // Ignore generic filenames
-            const isGenericName = extractedName.toLowerCase().includes('image') || 
-                                  extractedName.toLowerCase().includes('photo') || 
-                                  extractedName.toLowerCase().includes('img') || 
-                                  extractedName.toLowerCase().includes('whatsapp') ||
-                                  extractedName.toLowerCase() === 'download';
-            
-            if (extractedName && extractedName.length > 2 && !isGenericName) {
+            if (publicUrl) {
                 if (typeof appController !== 'undefined') {
-                    appController.showNotification(`Searching Google via SerpApi for: ${extractedName}...`, 'info');
+                    appController.showNotification(`Sending image to Google Lens...`, 'info');
                 }
-                
                 try {
-                    // Try TRUE Google Search via SerpApi first
-                    aiMatch = await this.fetchOSINTProfile(extractedName);
+                    aiMatch = await this.fetchGoogleLensOSINT(publicUrl);
                 } catch (err) {
-                    throw new Error(`OSINT Profile generation failed: ${err.message}. Please try scanning again.`);
+                    throw new Error(err.message);
+                }
+            } else {
+                // Try to extract a name and fetch AI profile based on filename
+                const extractedName = this.extractNameFromFilename(fileName);
+                
+                // Ignore generic filenames
+                const isGenericName = extractedName.toLowerCase().includes('image') || 
+                                      extractedName.toLowerCase().includes('photo') || 
+                                      extractedName.toLowerCase().includes('img') || 
+                                      extractedName.toLowerCase().includes('whatsapp') ||
+                                      extractedName.toLowerCase() === 'download';
+                
+                if (extractedName && extractedName.length > 2 && !isGenericName) {
+                    if (typeof appController !== 'undefined') {
+                        appController.showNotification(`Searching Google via SerpApi for: ${extractedName}...`, 'info');
+                    }
+                    
+                    try {
+                        // Try TRUE Google Search via SerpApi first
+                        aiMatch = await this.fetchOSINTProfile(extractedName);
+                    } catch (err) {
+                        throw new Error(`OSINT Profile generation failed: ${err.message}. Please try scanning again.`);
+                    }
                 }
             }
             
