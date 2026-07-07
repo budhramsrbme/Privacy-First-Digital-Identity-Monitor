@@ -214,7 +214,7 @@ class PDFReportGenerator {
     async generateReport() {
         try {
             // Check if jsPDF is available
-            if (typeof window.jsPDF === 'undefined') {
+            if (typeof window.jspdf === 'undefined') {
                 alert('PDF generation library not loaded. Please refresh the page and try again.');
                 return;
             }
@@ -232,7 +232,8 @@ class PDFReportGenerator {
             reportButton.disabled = true;
 
             // Create new PDF document
-            this.doc = new window.jsPDF();
+            const { jsPDF } = window.jspdf;
+            this.doc = new jsPDF();
             
             // Add header
             this.addHeader();
@@ -437,11 +438,11 @@ const pdfGenerator = new PDFReportGenerator();
 // Debug function to check PDF library status
 function checkPDFLibraryStatus() {
     console.log('Checking PDF library status...');
-    console.log('jsPDF available:', typeof window.jsPDF !== 'undefined');
-    console.log('jsPDF version:', window.jsPDF ? window.jsPDF.version : 'Not available');
+    console.log('jsPDF available:', typeof window.jspdf !== 'undefined');
+    console.log('jsPDF version:', window.jspdf ? window.jspdf.jsPDF.version : 'Not available');
     console.log('PDF generator available:', typeof pdfGenerator !== 'undefined');
     
-    if (typeof window.jsPDF === 'undefined') {
+    if (typeof window.jspdf === 'undefined') {
         console.error('jsPDF library not loaded! Check network connection and CDN availability.');
         return false;
     }
@@ -481,24 +482,7 @@ function checkExportCapabilities() {
     }
 }
 
-// Privacy control functions
-function deleteAllData() {
-    privacyManager.deleteAllUserData();
-}
-
-function exportData() {
-    privacyManager.exportUserData();
-}
-
-function generateReport() {
-    // Try the main PDF generator first
-    if (typeof pdfGenerator !== 'undefined') {
-        pdfGenerator.generateReport();
-    } else {
-        // Fallback method
-        generateSimpleReport();
-    }
-}
+// Global event handlers for privacy are in app.js
 
 // Fallback PDF generation method
 function generateSimpleReport() {
