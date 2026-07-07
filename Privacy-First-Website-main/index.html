@@ -61,8 +61,6 @@
                 <h1>Digital Identity Monitor</h1>
                 <div class="user-info">
                     <span id="user-email"></span>
-                    <input type="password" id="openai-api-key" placeholder="OpenAI API Key (Optional)" style="margin-right: 10px; padding: 5px; border-radius: 4px; border: 1px solid #ddd;">
-                    <button onclick="saveApiKey()" style="margin-right: 10px;">Save Key</button>
                     <button onclick="logout()">Logout</button>
                 </div>
             </header>
@@ -95,7 +93,7 @@
             <div class="dashboard-section">
                 <div class="dashboard-header">
                     <h2>Scan Results</h2>
-                    <button id="generate-report" onclick="generateReport()" disabled>Generate Report</button>
+                    <button id="generate-report" onclick="generateReport()" disabled>Download PDF Report</button>
                 </div>
                 
                 <div id="scan-results" class="scan-results">
