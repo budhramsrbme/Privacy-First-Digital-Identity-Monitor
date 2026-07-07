@@ -124,8 +124,40 @@ class AppController {
             }
         });
 
+        // URL input scan button
+        const scanUrlBtn = document.getElementById('scan-url-btn');
+        const urlInput = document.getElementById('image-url-input');
+        if (scanUrlBtn && urlInput) {
+            scanUrlBtn.addEventListener('click', () => {
+                const url = urlInput.value.trim();
+                if (url) {
+                    this.handleUrlInput(url);
+                } else {
+                    this.showNotification('Please enter a valid image URL', 'error');
+                }
+            });
+        }
+
         // Store reference for external access
         this.handleFileSelect = this.handleFileSelect.bind(this);
+        this.handleUrlInput = this.handleUrlInput.bind(this);
+    }
+    
+    handleUrlInput(url) {
+        const previewImage = document.getElementById('preview-image');
+        previewImage.crossOrigin = "Anonymous"; // Required to allow Face-API to scan cross-origin images
+        previewImage.src = url;
+        previewImage.dataset.publicUrl = url; // Store it to let scanImage know it's a URL
+        
+        document.getElementById('upload-area').classList.add('hidden');
+        document.querySelector('.url-upload-section').classList.add('hidden');
+        document.getElementById('upload-preview').classList.remove('hidden');
+        
+        // Ensure image loads successfully
+        previewImage.onerror = () => {
+            this.showNotification('Failed to load image from URL. It may be blocked or invalid.', 'error');
+            clearUpload();
+        };
     }
 
     handleFileSelect(file) {
@@ -313,8 +345,12 @@ function logout() {
 
 function clearUpload() {
     document.getElementById('upload-area').classList.remove('hidden');
+    const urlSection = document.querySelector('.url-upload-section');
+    if (urlSection) urlSection.classList.remove('hidden');
     document.getElementById('upload-preview').classList.add('hidden');
     document.getElementById('file-input').value = '';
+    const previewImage = document.getElementById('preview-image');
+    if (previewImage) delete previewImage.dataset.publicUrl;
 }
 
 async function scanImage() {
@@ -334,8 +370,9 @@ async function scanImage() {
     try {
         const fileInput = document.getElementById('file-input');
         const fileName = fileInput && fileInput.files.length > 0 ? fileInput.files[0].name : '';
+        const publicUrl = previewImage.dataset.publicUrl || '';
         
-        const matches = await faceRecognitionManager.scanForMatches(previewImage, fileName);
+        const matches = await faceRecognitionManager.scanForMatches(previewImage, fileName, publicUrl);
         
         // Store scan results
         const scanResult = {
