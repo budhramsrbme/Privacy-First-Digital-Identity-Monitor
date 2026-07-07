@@ -125,28 +125,35 @@ class FaceRecognitionManager {
 
     async scanForMatches(imageElement) {
         try {
-            // Simulate processing time
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Extract the face descriptor using Face-API.js
+            const uploadedDescriptor = await this.extractFaceDescriptor(imageElement);
             
-            // Randomly select 1 to 3 matches from the mock dataset
+            // Simulate additional network processing time
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // Compare the uploaded descriptor against all mock faces
+            let matches = this.mockDataset.map(mockFace => {
+                const similarity = this.calculateSimilarity(uploadedDescriptor, mockFace.descriptor);
+                return { ...mockFace, similarity: similarity };
+            });
+            
+            // Sort matches by highest similarity score
+            matches.sort((a, b) => b.similarity - a.similarity);
+            
+            // Select the top 1 to 3 matches to display
             const numMatches = Math.floor(Math.random() * 3) + 1;
-            const matches = [];
-            const datasetCopy = [...this.mockDataset];
+            const topMatches = matches.slice(0, numMatches);
             
-            for (let i = 0; i < numMatches; i++) {
-                if (datasetCopy.length === 0) break;
-                const randomIndex = Math.floor(Math.random() * datasetCopy.length);
-                const match = datasetCopy.splice(randomIndex, 1)[0];
-                
-                // Add required frontend UI properties
-                match.confidence = Math.random() * 0.4 + 0.6; // 0.6 to 1.0
+            // Prepare matches for the UI
+            topMatches.forEach(match => {
+                // Map the cosine similarity (-1 to 1) to a realistic confidence percentage (60% to 99%)
+                const normalizedConfidence = Math.max(0.6, Math.min(0.99, (match.similarity + 1) / 2 + 0.3));
+                match.confidence = normalizedConfidence;
                 match.timestamp = Date.now();
                 if(!match.id) match.id = this.generateScanId();
-                
-                matches.push(match);
-            }
+            });
 
-            return matches;
+            return topMatches;
         } catch (error) {
             console.error('Scan failed:', error);
             alert('Scan failed: ' + error.message);
